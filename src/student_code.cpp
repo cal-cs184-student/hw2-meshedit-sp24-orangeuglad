@@ -19,7 +19,6 @@ namespace CGL
     for(int n = 0; n < points.size() - 1; n++) {
       intermediate_points.push_back(Vector2D((1-this->t)*points[n].x + this->t*points[n+1].x, (1-this->t)*points[n].y + this->t*points[n+1].y));
     }
-    // TODO Part 1.
     return intermediate_points;
   }
 
@@ -33,8 +32,11 @@ namespace CGL
    */
   std::vector<Vector3D> BezierPatch::evaluateStep(std::vector<Vector3D> const &points, double t) const
   {
-    // TODO Part 2.
-    return std::vector<Vector3D>();
+    std::vector<Vector3D> intermediate_points;
+    for(int n = 0; n < points.size() - 1; n++) {
+      intermediate_points.push_back(Vector3D((1-t)*points[n].x + t*points[n+1].x, (1-t)*points[n].y + t*points[n+1].y, (1-t)*points[n].z + t*points[n+1].z));
+    }
+    return intermediate_points;
   }
 
   /**
@@ -46,8 +48,11 @@ namespace CGL
    */
   Vector3D BezierPatch::evaluate1D(std::vector<Vector3D> const &points, double t) const
   {
-    // TODO Part 2.
-    return Vector3D();
+    std::vector<Vector3D> interpolated_points = points;
+    while(interpolated_points.size() != 1) {
+      interpolated_points = evaluateStep(interpolated_points, t);
+    }
+    return interpolated_points[0];
   }
 
   /**
@@ -59,8 +64,11 @@ namespace CGL
    */
   Vector3D BezierPatch::evaluate(double u, double v) const 
   {  
-    // TODO Part 2.
-    return Vector3D();
+    std::vector<Vector3D> interpolated_row_points;
+    for(int n = 0; n < this->controlPoints.size(); n++) {
+      interpolated_row_points.push_back(evaluate1D(this->controlPoints[n], u));
+    }
+    return evaluate1D(interpolated_row_points, v);
   }
 
   Vector3D Vertex::normal( void ) const
@@ -69,7 +77,41 @@ namespace CGL
     // Returns an approximate unit normal at this vertex, computed by
     // taking the area-weighted average of the normals of neighboring
     // triangles, then normalizing.
-    return Vector3D();
+    // use HalfedgeCIter and not HalfedgeIter
+    Vector3D normal(0, 0, 0);
+    vector<VertexCIter> indices;
+    VertexCIter v = this->halfedge()->vertex();
+    indices.push_back(v);
+    VertexCIter secondVertex;
+    HalfedgeCIter h = this->halfedge();      // get the outgoing half-edge of the vertex
+    do {
+        HalfedgeCIter h_twin = h->twin(); // get the opposite half-edge
+        VertexCIter v = h_twin->vertex(); // vertex is the 'source' of the half-edge, so
+                                          // h->vertex() is v, whereas h_twin->vertex()
+                                          // is the neighboring vertex
+        indices.push_back(v);
+        if(indices.size() == 3) {
+          Vector3D edge1 = -(indices[1]->position - indices[0]->position);
+          Vector3D edge2 = indices[2]->position - indices[0]->position;
+          Vector3D faceNormal = cross(edge1, edge2);
+          double faceArea = faceNormal.norm()/2;
+          normal += faceNormal * faceArea;
+
+          indices.erase(indices.begin() + 1); //remove 2nd vertex
+        } else if (indices.size() == 2) {
+          secondVertex = v;
+        }
+        h = h_twin->next();               // move to the next outgoing half-edge of the vertex
+    } while(h != v->halfedge());          // keep going until we are back where we were
+
+    indices.push_back(secondVertex);
+    Vector3D edge1 = indices[1]->position - indices[0]->position;
+    Vector3D edge2 = indices[2]->position - indices[0]->position;
+    Vector3D faceNormal = cross(edge1, edge2);
+    double faceArea = faceNormal.norm()/2;
+    normal += faceNormal * faceArea;
+
+    return normal / normal.norm();
   }
 
   EdgeIter HalfedgeMesh::flipEdge( EdgeIter e0 )

@@ -105,7 +105,7 @@ namespace CGL
     } while(h != v->halfedge());          // keep going until we are back where we were
 
     indices.push_back(secondVertex);
-    Vector3D edge1 = indices[1]->position - indices[0]->position;
+    Vector3D edge1 = indices[0]->position - indices[1]->position;
     Vector3D edge2 = indices[2]->position - indices[0]->position;
     Vector3D faceNormal = cross(edge1, edge2);
     double faceArea = faceNormal.norm()/2;

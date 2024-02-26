@@ -487,12 +487,14 @@ namespace CGL
                 if ((v0new && !v1new) || (!v0new && v1new)) {
                     EdgeIter eFlip = mesh.flipEdge(e);
                 }
+                e->isNew = false;
                 std::cout << e->halfedge()->vertex()->position;
             }
         }
 
         for (VertexIter v = mesh.verticesBegin(); v != mesh.verticesEnd(); v++) {
             v->position = v->newPosition;
+            v->isNew = false;
         }
     }
 }

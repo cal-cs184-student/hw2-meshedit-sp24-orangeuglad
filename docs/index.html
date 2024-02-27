@@ -125,7 +125,7 @@
     <tr align="center">
       <td>
         <img src="images/proj_28.png" align="middle" width="400px"/>
-        <figcaption>Level 0</figcaption>
+        <figcaption>Modified Bezier Curve with Different t</figcaption>
       </td>
     </tr>
   </table>
@@ -168,8 +168,7 @@
   Briefly explain how you implemented the area-weighted vertex normals.
 </b>
 <p>
-  To implement area-weighted vertex normals, we used the halfedge associated with the given vertex (since we had access to class member variables) to iterate through the faces/triangles incident to the vertex by referencing printNeighborPositions from the primer, taking the twin of the current halfedge (then taking the vertex rooted at the twin, giving us a neighboring vertex) and then calling next() when we wanted to move on to collect the next vertex. The given vertex would always be part of any incident faces, so we found the vertices for each face by creating a set with the given vertex plus each pair of two other vertices that neighbored each other, making a set of three vertices around the face/triangle.  For each such face, you weight its normal by its area. Finally, you normalize the sum of all area-weighted normals.
-
+    To implement area-weighted vertex normals, we used the halfedge associated with the given vertex (since we had access to class member variables) to iterate through the faces/triangles incident to the vertex by referencing printNeighborPositions from the primer, taking the twin of the current halfedge (then taking the vertex rooted at the twin, giving us a neighboring vertex) and then calling next() when we wanted to move on to collect the next vertex. The given vertex would always be part of any incident faces, so we found the vertices for each face by traversing through all neighboring pairs of vertices plus the given vertex, making sets of the three vertices around every face/triangle incident to the given vertex. For each such face, we found the normal (cross product of two of the triangle edges) and weighted the normal by the face’s area. Finally, we added together all the weighted normals and normalized this sum to get the area-weighted vertex normal.
 </p>
 <br>
 
@@ -224,6 +223,9 @@
     </tr>
   </table>
 </div>
+<p>
+    Using this diagram as a reference, we collected variables for the beginning configuration, then updated all the mesh elements that were affected by the flip operation. However, we ignore the edge flip operation when applied to the boundary edges. We did not add any new elements in this operation.
+</p>
 
 <br>
 
@@ -290,12 +292,16 @@
 </p>
 <div align="middle">
   <table style="width:100%">
-    <tr align="center">
-      <td>
-        <img src="images/notebook.png" align="middle" width="400px"/>
-        <figcaption>Notebook sketch split operation</figcaption>
-      </td>
-    </tr>
+      <tr align="center">
+          <td>
+              <img src="images/notebook0.png" align="middle" width="400px" />
+              <figcaption>Before split operation</figcaption>
+          </td>
+          <td>
+              <img src="images/notebook.png" align="middle" width="400px" />
+              <figcaption>Notebook sketch split operation</figcaption>
+          </td>
+      </tr>
   </table>
 </div>
 <br>
@@ -444,30 +450,54 @@
   Load dae/cube.dae. Perform several iterations of loop subdivision on the cube. Notice that the cube becomes slightly asymmetric after repeated subdivisions. Can you pre-process the cube with edge flips and splits so that the cube subdivides symmetrically? Document these effects and explain why they occur. Also explain how your pre-processing helps alleviate the effects.
 </b>
 <p>
-  The cube becomes slightly asymmetric after repeated subdivisions. This asymmetry is primarily due to the way Loop subdivision averages vertex positions, which can lead to non-uniform distributions of vertices, especially in a geometry like a cube that starts with a highly regular and symmetric structure. We tried to pre-process the cube with edge flips and splits so that the cube subdivides symmetrically. As seen below, the cube retains more of its sharpness and symmetry after pre-processing. This is because the pre-processing adds more vertices and edges, which gives the Loop subdivision algorithm more points to work with, helping to preserve the original structure.
+  The cube becomes slightly asymmetric after repeated subdivisions. This asymmetry is primarily due to the way Loop subdivision averages vertex positions, which can lead to non-uniform distributions of vertices, especially in a geometry like a cube that starts with a highly regular and symmetric structure but has the single diagonal across the faces that goes asymmetrically from one corner to the other. We tried to pre-process the cube with edge splits down both corners (forming an x on each face instead of a single diagonal line on each face) so that the cube subdivides symmetrically. This pre-processing helps alleviate the effects by making the edges of cube more uniformly symmetric to begin with (symmetric triangle arrangement along every face instead of two slanted triangles), which in turn helps preserve the symmetry of the cube when all these symmetric faces are subdivided (as opposed to the subdivision of asymmetric faces). As seen below,
 </p>
 
 <div align="middle">
-  <table style="width:100%">
-    <tr align="center">
-      <td>
-        <img src="images/cube_0.png" align="middle" width="400px"/>
-        <figcaption>Cube Pre-process Level 0</figcaption>
-      </td>
-      <td>
-        <img src="images/cube_1.png" align="middle" width="400px"/>
-        <figcaption>Cube Pre-process Level 1</figcaption>
-      </td>
-    </tr>
-    <br>
-    <tr align="center">
-      <td>
-        <img src="images/cube_2.png" align="middle" width="400px"/>
-        <figcaption>Cube Pre-process Level 2</figcaption>
-      </td>
-    </tr>
-    <br>
-  </table>
+    <table style="width:100%">
+        <tr align="center">
+            <td>
+                <img src="images/nopreprocess0.png" align="middle" width="400px" />
+                <figcaption>Before preprocess #1</figcaption>
+            </td>
+            <td>
+                <img src="images/preprocess0.png" align="middle" width="400px" />
+                <figcaption>Post preprocess #1</figcaption>
+            </td>
+        </tr>
+        <br />
+        <tr align="center">
+            <td>
+                <img src="images/nopreprocess1.png" align="middle" width="400px" />
+                <figcaption>Before preprocess #2</figcaption>
+            </td>
+            <td>
+                <img src="images/preprocess1.png" align="middle" width="400px" />
+                <figcaption>Post preprocess #2</figcaption>
+            </td>
+        </tr>
+        <tr align="center">
+            <td>
+                <img src="images/nopreprocess2.png" align="middle" width="400px" />
+                <figcaption>Before preprocess #3</figcaption>
+            </td>
+            <td>
+                <img src="images/preprocess2.png" align="middle" width="400px" />
+                <figcaption>Post preprocess #3</figcaption>
+            </td>
+        </tr>
+        <tr align="center">
+            <td>
+                <img src="images/nopreprocess3.png" align="middle" width="400px" />
+                <figcaption>Before preprocess #4</figcaption>
+            </td>
+            <td>
+                <img src="images/preprocess3.png" align="middle" width="400px" />
+                <figcaption>Post preprocess #4</figcaption>
+            </td>
+        </tr>
+        <br />
+    </table>
 </div>
 
 <br>

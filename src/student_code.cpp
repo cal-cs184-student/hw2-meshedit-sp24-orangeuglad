@@ -461,6 +461,7 @@ namespace CGL
         }
 
         for (EdgeIter e = mesh.edgesBegin(); e != mesh.edgesEnd(); e++) {
+            e->isNew = false;
             Vector3D A = e->halfedge()->vertex()->position;
             Vector3D B = e->halfedge()->twin()->vertex()->position;
             Vector3D C = e->halfedge()->next()->next()->vertex()->position;
